@@ -33,7 +33,7 @@ pub fn build(b: *std.Build) void {
     // because we copied the gl code into the project
     // we instead just create the module inline
     exe.addModule("gl", b.createModule(.{
-        .source_file = .{ .path = "libs/gl41.zig" },
+        .source_file = .{ .path = "libs/gl46.zig" },
     }));
 
     b.installArtifact(exe);
