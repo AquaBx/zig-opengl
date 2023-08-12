@@ -93,7 +93,7 @@ pub fn main() !void {
     gl.bindBuffer(gl.ARRAY_BUFFER,VBO);
     gl.bufferData(gl.ARRAY_BUFFER, vertices.len * @sizeOf(f32)  , &vertices, gl.STATIC_DRAW);
 
-    gl.vertexAttribPointer(0,3, gl.FLOAT, gl.FALSE, 3 * @sizeOf(f32), &void ); // 9 = sizeof(float)
+    gl.vertexAttribPointer(0,3, gl.FLOAT, gl.FALSE, 3 * @sizeOf(f32), null ); 
     gl.enableVertexAttribArray(0);
 
     gl.bindBuffer(gl.ARRAY_BUFFER,0);
@@ -102,7 +102,7 @@ pub fn main() !void {
     // Wait for the user to close the window.
     while (!window.shouldClose()) {
 
-        gl.clearColor(1, 0, 1, 1);
+        gl.clearColor(0, 0, 0, 1);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         gl.useProgram(shaderProgram);
