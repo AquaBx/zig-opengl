@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    - cron: '0 5 * * *' # run at 5 AM UTC
+    
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: Setup Zig
+        uses: goto-bus-stop/setup-zig@v1
+        with:
+          version: master
+
+      - name: Install dotnet 6.0
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '6.0.x' # SDK Version to use; x will use the latest version of the 3.1 channel
+
+      - name: Build the generator
+        run: dotnet build
+
+      - name: Generate all default files
+        run: |
+          mkdir -p exports
+          make
+
+      - name: Compile release variants for the generator
+        run: |
+          dotnet publish -r win-x64 -c Release -p:PublishReadyToRun=false
+          dotnet publish -r linux-x64 -c Release -p:PublishReadyToRun=true
+          dotnet publish -r linux-arm -c Release -p:PublishReadyToRun=true
+          dotnet publish -r linux-arm64 -c Release -p:PublishReadyToRun=true
+
+      - name: Bundle linux-x64 executables
+        uses: actions/upload-artifact@v2
+        with:
+          name: generator-linux-x64
+          path: bin/Release/net6.0/linux-x64/publish/
+
+      - name: Bundle linux-arm executables
+        uses: actions/upload-artifact@v2
+        with:
+          name: generator-linux-arm
+          path: bin/Release/net6.0/linux-arm/publish/
+
+      - name: Bundle linux-arm64 executables
+        uses: actions/upload-artifact@v2
+        with:
+          name: generator-linux-arm64
+          path: bin/Release/net6.0/linux-arm64/publish/
+
+      - name: Bundle win-x64 executables
+        uses: actions/upload-artifact@v2
+        with:
+          name: generator-win-x64
+          path: bin/Release/net6.0/win-x64/publish/
+
+      - name: Bundle pregenerated loaders
+        uses: actions/upload-artifact@v2
+        with:
+          name: loaders
+          path: exports/*.zig
