@@ -1,0 +1,5 @@
+zig-cache/
+obj/
+bin/
+temp/
+exports/
