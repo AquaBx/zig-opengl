@@ -21,44 +21,38 @@ fn errorGlCallback(source: gl.GLenum, _type: gl.GLenum, id: gl.GLuint, severity:
     _ = length;
     _ = userParam;
 
-    var source_name:[]const u8 = "";
-    var severity_name:[]const u8 = "";
-    var type_name:[]const u8 = "";
+    var source_name = switch (source) {
+        gl.DEBUG_SOURCE_API => "API",
+        gl.DEBUG_SOURCE_WINDOW_SYSTEM => "window system",
+        gl.DEBUG_SOURCE_SHADER_COMPILER => "shader compiler",
+        gl.DEBUG_SOURCE_THIRD_PARTY => "third party",
+        gl.DEBUG_SOURCE_APPLICATION => "application",
+        gl.DEBUG_SOURCE_OTHER => "other",
+        else => "other",
+    };
 
-    switch (source) {
-        gl.DEBUG_SOURCE_API             => {source_name = "API";},
-        gl.DEBUG_SOURCE_WINDOW_SYSTEM   => {source_name = "window system";},
-        gl.DEBUG_SOURCE_SHADER_COMPILER => {source_name = "shader compiler";},
-        gl.DEBUG_SOURCE_THIRD_PARTY     => {source_name = "third party";},
-        gl.DEBUG_SOURCE_APPLICATION     => {source_name = "application";},
-        gl.DEBUG_SOURCE_OTHER           => {source_name = "other";},
-        else => { source_name = "other"; }
-    }
+    var severity_name = switch (_type) {
+        gl.DEBUG_TYPE_ERROR => "error",
+        gl.DEBUG_TYPE_DEPRECATED_BEHAVIOR => "deprecated behaviour",
+        gl.DEBUG_TYPE_UNDEFINED_BEHAVIOR => "undefined behaviour",
+        gl.DEBUG_TYPE_PORTABILITY => "portability",
+        gl.DEBUG_TYPE_PERFORMANCE => "performance",
+        gl.DEBUG_TYPE_MARKER => "marker",
+        gl.DEBUG_TYPE_PUSH_GROUP => "push group",
+        gl.DEBUG_TYPE_POP_GROUP => "pop group",
+        gl.DEBUG_TYPE_OTHER => "other",
+        else => "other",
+    };
 
-    switch (_type)
-    {
-        gl.DEBUG_TYPE_ERROR               => {type_name = "error";},
-        gl.DEBUG_TYPE_DEPRECATED_BEHAVIOR => {type_name = "deprecated behaviour";},
-        gl.DEBUG_TYPE_UNDEFINED_BEHAVIOR  => {type_name = "undefined behaviour"; },
-        gl.DEBUG_TYPE_PORTABILITY         => {type_name = "portability";},
-        gl.DEBUG_TYPE_PERFORMANCE         => {type_name = "performance";},
-        gl.DEBUG_TYPE_MARKER              => {type_name = "marker";},
-        gl.DEBUG_TYPE_PUSH_GROUP          => {type_name = "push group";},
-        gl.DEBUG_TYPE_POP_GROUP           => {type_name = "pop group";},
-        gl.DEBUG_TYPE_OTHER               => {type_name = "other";},
-        else => { source_name = "other"; }
-    }
+    var type_name = switch (severity) {
+        gl.DEBUG_SEVERITY_HIGH => "high",
+        gl.DEBUG_SEVERITY_MEDIUM => "medium",
+        gl.DEBUG_SEVERITY_LOW => "low",
+        gl.DEBUG_SEVERITY_NOTIFICATION => "notification",
+        else => "other",
+    };
 
-    switch (severity) {
-        gl.DEBUG_SEVERITY_HIGH         => {severity_name = "high";},
-        gl.DEBUG_SEVERITY_MEDIUM       => {severity_name = "medium";},
-        gl.DEBUG_SEVERITY_LOW          => {severity_name = "low";},
-        gl.DEBUG_SEVERITY_NOTIFICATION => {severity_name = "notification";},
-        else => { source_name = "other"; }
-
-    }
-
-    std.log.err("GL ERROR[source: {s}, type: {s}, severity: {s}]: {s}\n", .{source_name,type_name,severity_name, message});
+    std.log.err("GL ERROR[source: {s}, type: {s}, severity: {s}]: {s}\n", .{ source_name, type_name, severity_name, message });
 }
 
 const vertex_data = struct {
@@ -99,7 +93,7 @@ pub fn main() !void {
         .opengl_profile = .opengl_core_profile,
         .context_version_major = 4,
         .context_version_minor = 5,
-        .samples = 16
+        .samples = 16,
     }) orelse {
         std.log.err("failed to create GLFW window: {?s}", .{glfw.getErrorString()});
         std.process.exit(1);
@@ -118,7 +112,7 @@ pub fn main() !void {
 
     gl.enable(gl.DEBUG_OUTPUT);
     gl.enable(gl.PROGRAM_POINT_SIZE);
-    gl.enable(gl.MULTISAMPLE);  
+    gl.enable(gl.MULTISAMPLE);
 
     gl.pointSize(6.0);
     gl.debugMessageCallback(errorGlCallback, null);
@@ -139,7 +133,7 @@ pub fn main() !void {
 
     gl.bindVertexArray(VAO);
 
-    var buf = [_]f32{ -1, -1, -0.5, 0.5,  0.5, 0.5, 1, -1 };
+    var buf = [_]f32{ -1, -1, -0.5, 0.5, 0.5, 0.5, 1, -1 };
     var vertices = @as([]f32, &buf);
     gl.bindBuffer(gl.ARRAY_BUFFER, VBO);
     gl.bufferData(gl.ARRAY_BUFFER, @bitCast(vertices.len * @sizeOf(f32)), vertices.ptr, gl.STATIC_DRAW);
@@ -148,11 +142,6 @@ pub fn main() !void {
 
     gl.bindBuffer(gl.ARRAY_BUFFER, 0);
     gl.bindVertexArray(0);
-
-
-
-
-
 
     gl.clearColor(30.0 / 255.0, 30.0 / 255.0, 30.0 / 255.0, 1.0);
     // Wait for the user to close the window.
