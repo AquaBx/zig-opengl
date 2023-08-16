@@ -4037,13 +4037,13 @@ pub fn getnCompressedTexImage(_target: GLenum, _lod: GLint, _bufSize: GLsizei, _
     return @call(.always_tail, function_pointers.glGetnCompressedTexImage, .{ _target, _lod, _bufSize, _pixels });
 }
 
-// pub fn getnTexImage(_target: GLenum, _level: GLint, _format: GLenum, _type: GLenum, _bufSize: GLsizei, _pixels: ?*anyopaque) callconv(.C) void {
-//     return @call(.always_tail, function_pointers.glGetnTexImage, .{_target, _level, _format, _type, _bufSize, _pixels});
-// }
+pub fn getnTexImage(_target: GLenum, _level: GLint, _format: GLenum, _type: GLenum, _bufSize: GLsizei, _pixels: ?*anyopaque) callconv(.C) void {
+    return @call(.always_tail, function_pointers.glGetnTexImage, .{ _target, _level, _format, _type, _bufSize, _pixels });
+}
 
-// pub fn getnUniformdv(_program: GLuint, _location: GLint, _bufSize: GLsizei, _params: [*c]GLdouble) callconv(.C) void {
-//     return @call(.always_tail, function_pointers.glGetnUniformdv, .{_program, _location, _bufSize, _params});
-// }
+pub fn getnUniformdv(_program: GLuint, _location: GLint, _bufSize: GLsizei, _params: [*c]GLdouble) callconv(.C) void {
+    return @call(.always_tail, function_pointers.glGetnUniformdv, .{ _program, _location, _bufSize, _params });
+}
 
 pub fn getnUniformfv(_program: GLuint, _location: GLint, _bufSize: GLsizei, _params: [*c]GLfloat) callconv(.C) void {
     return @call(.always_tail, function_pointers.glGetnUniformfv, .{ _program, _location, _bufSize, _params });
@@ -4069,13 +4069,13 @@ pub fn specializeShader(_shader: GLuint, _pEntryPoint: [*c]const GLchar, _numSpe
     return @call(.always_tail, function_pointers.glSpecializeShader, .{ _shader, _pEntryPoint, _numSpecializationConstants, _pConstantIndex, _pConstantValue });
 }
 
-// pub fn multiDrawArraysIndirectCount(_mode: GLenum, _indirect: ?*const anyopaque, _drawcount: GLintptr, _maxdrawcount: GLsizei, _stride: GLsizei) callconv(.C) void {
-//     return @call(.always_tail, function_pointers.glMultiDrawArraysIndirectCount, .{_mode, _indirect, _drawcount, _maxdrawcount, _stride});
-// }
+pub fn multiDrawArraysIndirectCount(_mode: GLenum, _indirect: ?*const anyopaque, _drawcount: GLintptr, _maxdrawcount: GLsizei, _stride: GLsizei) callconv(.C) void {
+    return @call(.always_tail, function_pointers.glMultiDrawArraysIndirectCount, .{ _mode, _indirect, _drawcount, _maxdrawcount, _stride });
+}
 
-// pub fn multiDrawElementsIndirectCount(_mode: GLenum, _type: GLenum, _indirect: ?*const anyopaque, _drawcount: GLintptr, _maxdrawcount: GLsizei, _stride: GLsizei) callconv(.C) void {
-//     return @call(.always_tail, function_pointers.glMultiDrawElementsIndirectCount, .{_mode, _type, _indirect, _drawcount, _maxdrawcount, _stride});
-// }
+pub fn multiDrawElementsIndirectCount(_mode: GLenum, _type: GLenum, _indirect: ?*const anyopaque, _drawcount: GLintptr, _maxdrawcount: GLsizei, _stride: GLsizei) callconv(.C) void {
+    return @call(.always_tail, function_pointers.glMultiDrawElementsIndirectCount, .{ _mode, _type, _indirect, _drawcount, _maxdrawcount, _stride });
+}
 
 pub fn polygonOffsetClamp(_factor: GLfloat, _units: GLfloat, _clamp: GLfloat) callconv(.C) void {
     return @call(.always_tail, function_pointers.glPolygonOffsetClamp, .{ _factor, _units, _clamp });
@@ -7961,18 +7961,18 @@ pub fn load(load_ctx: anytype, get_proc_address: fn (@TypeOf(load_ctx), [:0]cons
         log.err("entry point glGetnCompressedTexImage not found!", .{});
         success = false;
     }
-    // if(get_proc_address(load_ctx, "glGetnTexImage")) |proc| {
-    //     function_pointers.glGetnTexImage = @ptrCast(proc);
-    // } else {
-    //     log.err("entry point glGetnTexImage not found!", .{});
-    //     success = false;
-    // }
-    // if(get_proc_address(load_ctx, "glGetnUniformdv")) |proc| {
-    //     function_pointers.glGetnUniformdv = @ptrCast(proc);
-    // } else {
-    //     log.err("entry point glGetnUniformdv not found!", .{});
-    //     success = false;
-    // }
+    if (get_proc_address(load_ctx, "glGetnTexImage")) |proc| {
+        function_pointers.glGetnTexImage = @ptrCast(proc);
+    } else {
+        log.err("entry point glGetnTexImage not found!", .{});
+        success = false;
+    }
+    if (get_proc_address(load_ctx, "glGetnUniformdv")) |proc| {
+        function_pointers.glGetnUniformdv = @ptrCast(proc);
+    } else {
+        log.err("entry point glGetnUniformdv not found!", .{});
+        success = false;
+    }
     if (get_proc_address(load_ctx, "glGetnUniformfv")) |proc| {
         function_pointers.glGetnUniformfv = @ptrCast(proc);
     } else {
@@ -8009,18 +8009,18 @@ pub fn load(load_ctx: anytype, get_proc_address: fn (@TypeOf(load_ctx), [:0]cons
         log.err("entry point glSpecializeShader not found!", .{});
         success = false;
     }
-    // if(get_proc_address(load_ctx, "glMultiDrawArraysIndirectCount")) |proc| {
-    //     function_pointers.glMultiDrawArraysIndirectCount = @ptrCast(proc);
-    // } else {
-    //     log.err("entry point glMultiDrawArraysIndirectCount not found!", .{});
-    //     success = false;
-    // }
-    // if(get_proc_address(load_ctx, "glMultiDrawElementsIndirectCount")) |proc| {
-    //     function_pointers.glMultiDrawElementsIndirectCount = @ptrCast(proc);
-    // } else {
-    //     log.err("entry point glMultiDrawElementsIndirectCount not found!", .{});
-    //     success = false;
-    // }
+    if (get_proc_address(load_ctx, "glMultiDrawArraysIndirectCount")) |proc| {
+        function_pointers.glMultiDrawArraysIndirectCount = @ptrCast(proc);
+    } else {
+        log.err("entry point glMultiDrawArraysIndirectCount not found!", .{});
+        success = false;
+    }
+    if (get_proc_address(load_ctx, "glMultiDrawElementsIndirectCount")) |proc| {
+        function_pointers.glMultiDrawElementsIndirectCount = @ptrCast(proc);
+    } else {
+        log.err("entry point glMultiDrawElementsIndirectCount not found!", .{});
+        success = false;
+    }
     if (get_proc_address(load_ctx, "glPolygonOffsetClamp")) |proc| {
         function_pointers.glPolygonOffsetClamp = @ptrCast(proc);
     } else {
@@ -8678,16 +8678,16 @@ const function_signatures = struct {
     const glGetCompressedTextureSubImage = fn (_texture: GLuint, _level: GLint, _xoffset: GLint, _yoffset: GLint, _zoffset: GLint, _width: GLsizei, _height: GLsizei, _depth: GLsizei, _bufSize: GLsizei, _pixels: ?*anyopaque) callconv(.C) void;
     const glGetGraphicsResetStatus = fn () callconv(.C) GLenum;
     const glGetnCompressedTexImage = fn (_target: GLenum, _lod: GLint, _bufSize: GLsizei, _pixels: ?*anyopaque) callconv(.C) void;
-    // const glGetnTexImage = fn(_target: GLenum, _level: GLint, _format: GLenum, _type: GLenum, _bufSize: GLsizei, _pixels: ?*anyopaque) callconv(.C) void;
-    // const glGetnUniformdv = fn(_program: GLuint, _location: GLint, _bufSize: GLsizei, _params: [*c]GLdouble) callconv(.C) void;
+    const glGetnTexImage = fn (_target: GLenum, _level: GLint, _format: GLenum, _type: GLenum, _bufSize: GLsizei, _pixels: ?*anyopaque) callconv(.C) void;
+    const glGetnUniformdv = fn (_program: GLuint, _location: GLint, _bufSize: GLsizei, _params: [*c]GLdouble) callconv(.C) void;
     const glGetnUniformfv = fn (_program: GLuint, _location: GLint, _bufSize: GLsizei, _params: [*c]GLfloat) callconv(.C) void;
     const glGetnUniformiv = fn (_program: GLuint, _location: GLint, _bufSize: GLsizei, _params: [*c]GLint) callconv(.C) void;
     const glGetnUniformuiv = fn (_program: GLuint, _location: GLint, _bufSize: GLsizei, _params: [*c]GLuint) callconv(.C) void;
     const glReadnPixels = fn (_x: GLint, _y: GLint, _width: GLsizei, _height: GLsizei, _format: GLenum, _type: GLenum, _bufSize: GLsizei, _data: ?*anyopaque) callconv(.C) void;
     const glTextureBarrier = fn () callconv(.C) void;
     const glSpecializeShader = fn (_shader: GLuint, _pEntryPoint: [*c]const GLchar, _numSpecializationConstants: GLuint, _pConstantIndex: [*c]const GLuint, _pConstantValue: [*c]const GLuint) callconv(.C) void;
-    // const glMultiDrawArraysIndirectCount = fn(_mode: GLenum, _indirect: ?*const anyopaque, _drawcount: GLintptr, _maxdrawcount: GLsizei, _stride: GLsizei) callconv(.C) void;
-    // const glMultiDrawElementsIndirectCount = fn(_mode: GLenum, _type: GLenum, _indirect: ?*const anyopaque, _drawcount: GLintptr, _maxdrawcount: GLsizei, _stride: GLsizei) callconv(.C) void;
+    const glMultiDrawArraysIndirectCount = fn (_mode: GLenum, _indirect: ?*const anyopaque, _drawcount: GLintptr, _maxdrawcount: GLsizei, _stride: GLsizei) callconv(.C) void;
+    const glMultiDrawElementsIndirectCount = fn (_mode: GLenum, _type: GLenum, _indirect: ?*const anyopaque, _drawcount: GLintptr, _maxdrawcount: GLsizei, _stride: GLsizei) callconv(.C) void;
     const glPolygonOffsetClamp = fn (_factor: GLfloat, _units: GLfloat, _clamp: GLfloat) callconv(.C) void;
 };
 
@@ -9338,16 +9338,16 @@ const function_pointers = struct {
     var glGetCompressedTextureSubImage: FnPtr(function_signatures.glGetCompressedTextureSubImage) = undefined;
     var glGetGraphicsResetStatus: FnPtr(function_signatures.glGetGraphicsResetStatus) = undefined;
     var glGetnCompressedTexImage: FnPtr(function_signatures.glGetnCompressedTexImage) = undefined;
-    // var glGetnTexImage: FnPtr(function_signatures.glGetnTexImage) = undefined;
-    // var glGetnUniformdv: FnPtr(function_signatures.glGetnUniformdv) = undefined;
+    var glGetnTexImage: FnPtr(function_signatures.glGetnTexImage) = undefined;
+    var glGetnUniformdv: FnPtr(function_signatures.glGetnUniformdv) = undefined;
     var glGetnUniformfv: FnPtr(function_signatures.glGetnUniformfv) = undefined;
     var glGetnUniformiv: FnPtr(function_signatures.glGetnUniformiv) = undefined;
     var glGetnUniformuiv: FnPtr(function_signatures.glGetnUniformuiv) = undefined;
     var glReadnPixels: FnPtr(function_signatures.glReadnPixels) = undefined;
     var glTextureBarrier: FnPtr(function_signatures.glTextureBarrier) = undefined;
     var glSpecializeShader: FnPtr(function_signatures.glSpecializeShader) = undefined;
-    // var glMultiDrawArraysIndirectCount: FnPtr(function_signatures.glMultiDrawArraysIndirectCount) = undefined;
-    // var glMultiDrawElementsIndirectCount: FnPtr(function_signatures.glMultiDrawElementsIndirectCount) = undefined;
+    var glMultiDrawArraysIndirectCount: FnPtr(function_signatures.glMultiDrawArraysIndirectCount) = undefined;
+    var glMultiDrawElementsIndirectCount: FnPtr(function_signatures.glMultiDrawElementsIndirectCount) = undefined;
     var glPolygonOffsetClamp: FnPtr(function_signatures.glPolygonOffsetClamp) = undefined;
 };
 
