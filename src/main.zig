@@ -2,6 +2,8 @@ const std = @import("std");
 const glfw = @import("mach-glfw");
 const gl = @import("gl");
 
+const shader = @import("shader.zig");
+
 const log = std.log.scoped(.Engine);
 
 fn glGetProcAddress(p: glfw.GLProc, proc: [:0]const u8) ?gl.FunctionPointer {
@@ -25,6 +27,28 @@ fn errorGlCallback(source: gl.GLenum, _type: gl.GLenum, id: gl.GLuint, severity:
     std.log.err("gl: {s}\n", .{message});
 }
 
+const vertex_data = struct {
+    start: [2]f32,
+    control: [2]f32,
+    end: [2]f32,
+
+    const Self = @This();
+
+    pub fn layout() void {
+        gl.enableVertexAttribArray(0);
+        gl.vertexAttribPointer(0, 2, gl.FLOAT, 0, @sizeOf(Self), &@offsetOf(Self, "start"));
+        gl.enableVertexAttribArray(1);
+        gl.vertexAttribPointer(1, 2, gl.FLOAT, 0, @sizeOf(Self), &@offsetOf(Self, "control"));
+        gl.enableVertexAttribArray(2);
+        gl.vertexAttribPointer(2, 2, gl.FLOAT, 0, @sizeOf(Self), &@offsetOf(Self, "end"));
+    }
+};
+
+pub fn resize(window: glfw.Window, width: u32, height: u32) void {
+    _ = window;
+    gl.viewport(0, 0, @bitCast(width), @bitCast(height));
+}
+
 pub fn main() !void {
     glfw.setErrorCallback(errorCallback);
     if (!glfw.init(.{})) {
@@ -37,47 +61,35 @@ pub fn main() !void {
     const window = glfw.Window.create(640, 480, "mach-glfw + zig-opengl", null, null, .{
         .opengl_profile = .opengl_core_profile,
         .context_version_major = 4,
-        .context_version_minor = 0,
+        .context_version_minor = 5,
     }) orelse {
         std.log.err("failed to create GLFW window: {?s}", .{glfw.getErrorString()});
         std.process.exit(1);
     };
     defer window.destroy();
+    window.setFramebufferSizeCallback(resize);
 
     glfw.makeContextCurrent(window);
 
     const proc: glfw.GLProc = undefined;
-    try gl.load(proc, glGetProcAddress);
-
-    // test du polygon
-
-    var a = "#version 330 core\nlayout (location = 0) in vec3 aPos;\nvoid main() {\n    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n}";
-    var b = "#version 330 core\nout vec4 FragColor;\nvoid main()\n{FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n}";
+    gl.load(proc, glGetProcAddress) catch |err| {
+        std.debug.print("Error loading opengl functions: {}\n", .{err});
+    };
 
     gl.viewport(0, 0, 640, 480);
 
     gl.enable(gl.DEBUG_OUTPUT);
+    gl.enable(gl.PROGRAM_POINT_SIZE);
+    gl.pointSize(6.0);
     gl.debugMessageCallback(errorGlCallback, null);
 
-    const vertices = [_]f32{ -0.5, -0.5 * 0.58, 0, 0.5, -0.5 * 0.58, 0, 0.0, 1.0 * 0.58, 0 };
-
-    var vertexShaderSource = [_][*:0]const u8{a};
-    const vertexShader: gl.GLuint = gl.createShader(gl.VERTEX_SHADER);
-    gl.shaderSource(vertexShader, 1, &vertexShaderSource, null);
-    gl.compileShader(vertexShader);
-
-    var fragmentShaderSource = [_][*:0]const u8{b};
-    const fragmentShader: gl.GLuint = gl.createShader(gl.FRAGMENT_SHADER);
-    gl.shaderSource(fragmentShader, 1, &fragmentShaderSource, null);
-    gl.compileShader(fragmentShader);
-
-    const shaderProgram: gl.GLuint = gl.createProgram();
-    gl.attachShader(shaderProgram, vertexShader);
-    gl.attachShader(shaderProgram, fragmentShader);
-
-    gl.linkProgram(shaderProgram);
-    gl.deleteShader(vertexShader);
-    gl.deleteShader(fragmentShader);
+    var bezier_program = shader.program.new();
+    bezier_program
+        .attach("./assets/shader/bezier.vert", shader.ShaderType.vertex)
+        .attach("./assets/shader/bezier.geom", shader.ShaderType.geometry)
+        .attach("./assets/shader/bezier.frag", shader.ShaderType.fragment)
+        .link();
+    defer bezier_program.delete();
 
     var VAO: gl.GLuint = 0;
     var VBO: gl.GLuint = 0;
@@ -87,23 +99,24 @@ pub fn main() !void {
 
     gl.bindVertexArray(VAO);
 
+    var buf = [_]f32{ -0.5, -0.5, 0.0, 0.5, 0.5, -0.5 };
+    var vertices = @as([]f32, &buf);
     gl.bindBuffer(gl.ARRAY_BUFFER, VBO);
-    gl.bufferData(gl.ARRAY_BUFFER, vertices.len * @sizeOf(f32), &vertices, gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, @bitCast(vertices.len * @sizeOf(f32)), vertices.ptr, gl.STATIC_DRAW);
 
-    gl.vertexAttribPointer(0, 3, gl.FLOAT, gl.FALSE, 3 * @sizeOf(f32), null);
-    gl.enableVertexAttribArray(0);
+    vertex_data.layout();
 
     gl.bindBuffer(gl.ARRAY_BUFFER, 0);
     gl.bindVertexArray(0);
 
+    gl.clearColor(68.0 / 255.0, 80.0 / 255.0, 105.0 / 255.0, 1.0);
     // Wait for the user to close the window.
+    bezier_program.use();
     while (!window.shouldClose()) {
-        gl.clearColor(0, 0, 0, 1);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
-        gl.useProgram(shaderProgram);
         gl.bindVertexArray(VAO);
-        gl.drawArrays(gl.TRIANGLES, 0, 3);
+        gl.drawArrays(gl.POINTS, 0, 1);
 
         window.swapBuffers();
         glfw.pollEvents();
@@ -111,5 +124,4 @@ pub fn main() !void {
 
     gl.deleteVertexArrays(1, &VAO);
     gl.deleteBuffers(1, &VBO);
-    gl.deleteProgram(shaderProgram);
 }
