@@ -87,9 +87,11 @@ pub fn main() !void {
         std.process.exit(1);
     }
     defer glfw.terminate();
-
     // Create our window
-    const window = glfw.Window.create(640, 480, "mach-glfw + zig-opengl", null, null, .{
+
+    var size = glfw.Window.Size{ .width = 640, .height = 480 };
+
+    const window = glfw.Window.create(size.width, size.height, "mach-glfw + zig-opengl", null, null, .{
         .opengl_profile = .opengl_core_profile,
         .context_version_major = 4,
         .context_version_minor = 5,
@@ -99,16 +101,17 @@ pub fn main() !void {
         std.process.exit(1);
     };
     defer window.destroy();
-    window.setFramebufferSizeCallback(resize);
+    // window.setFramebufferSizeCallback(resize);
 
     glfw.makeContextCurrent(window);
+    glfw.swapInterval(1);
 
     const proc: glfw.GLProc = undefined;
     gl.load(proc, glGetProcAddress) catch |err| {
         std.debug.print("Error loading opengl functions: {}\n", .{err});
     };
 
-    gl.viewport(0, 0, 640, 480);
+    resize( window , size.width, size.height);
 
     gl.enable(gl.DEBUG_OUTPUT);
     gl.enable(gl.PROGRAM_POINT_SIZE);
@@ -131,6 +134,9 @@ pub fn main() !void {
     gl.genVertexArrays(1, &VAO);
     gl.genBuffers(1, &VBO);
 
+    defer gl.deleteVertexArrays(1, &VAO);
+    defer gl.deleteBuffers(1, &VBO);
+
     gl.bindVertexArray(VAO);
 
     var buf = [_]f32{ -1, -1, -0.5, 0.5, 0.5, 0.5, 1, -1 };
@@ -140,15 +146,60 @@ pub fn main() !void {
 
     vertex_data.layout();
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, 0);
-    gl.bindVertexArray(0);
+    //
+
+    var monprogrammeamoiquejai = shader.program.new();
+    monprogrammeamoiquejai
+        .attach("./assets/shader/ligne.vert", shader.ShaderType.vertex)
+        .attach("./assets/shader/ligne.frag", shader.ShaderType.fragment)
+        .link();
+    defer monprogrammeamoiquejai.delete();
+
+
+    var BackgroundVertexArray  : gl.GLuint = 0; // VAO
+    var BackgroundVertexBuffer : gl.GLuint = 0; // VBO
+
+    gl.genVertexArrays(1, &BackgroundVertexArray);
+    gl.genBuffers(1, &BackgroundVertexBuffer);
+
+    defer gl.deleteVertexArrays(1, &BackgroundVertexArray); // suppression à la fin
+    defer gl.deleteBuffers(1, &BackgroundVertexBuffer);     // suppression à la fin
+
+    gl.bindVertexArray(BackgroundVertexArray);
+
+    var ligne = [_]f32{ -1.0,0.0,1.0,0.0,
+                        -1.0,0.5,1.0,0.5,
+                        -1.0,-0.5,1.0,-0.5,
+                        0.0,1.0,0.0,-1.0,
+                        0.5,1.0,0.5,-1.0,
+                        -0.5,1.0,-0.5,-1.0,
+                        
+                        };
+    gl.bindBuffer(gl.ARRAY_BUFFER,BackgroundVertexBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, ligne.len * @sizeOf(f32), &ligne, gl.STATIC_DRAW );
+
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, 0, 2 * @sizeOf(f32), null);
+
+
+
+    //
+
 
     gl.clearColor(30.0 / 255.0, 30.0 / 255.0, 30.0 / 255.0, 1.0);
     // Wait for the user to close the window.
-    bezier_program.use();
+    
     while (!window.shouldClose()) {
         gl.clear(gl.COLOR_BUFFER_BIT);
+        
+        size = window.getSize();   
+        resize(window,size.width,size.height);
 
+        monprogrammeamoiquejai.use();
+        gl.bindVertexArray(BackgroundVertexArray);
+        gl.drawArrays(gl.LINES, 0, 12);
+
+        bezier_program.use();
         gl.bindVertexArray(VAO);
         gl.drawArrays(gl.POINTS, 0, 1);
 
@@ -156,6 +207,5 @@ pub fn main() !void {
         glfw.pollEvents();
     }
 
-    gl.deleteVertexArrays(1, &VAO);
-    gl.deleteBuffers(1, &VBO);
+
 }
