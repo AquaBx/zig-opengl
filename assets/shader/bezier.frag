@@ -1,8 +1,7 @@
 #version 450 core
 
-
 layout(location = 0) out vec4 color;
 
 void main() {
-    color = vec4(255.0 / 255.0, 92.0 / 255.0, 25.0 / 255.0, 1.0);
+    color = vec4(1.0, 0.3608, 0.098, 1.0);
 }

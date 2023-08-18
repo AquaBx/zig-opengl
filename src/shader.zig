@@ -1,6 +1,7 @@
-const gl = @import("gl");
-
 const std = @import("std");
+const gl = @import("gl");
+const zlm = @import("zlm");
+
 const read = std.fs.Dir.readFile;
 
 fn compile_shader(path: []const u8, t: gl.GLenum) u32 {
@@ -23,11 +24,15 @@ pub const ShaderType = enum {
 
 pub const program = struct {
     id: u32,
+    uniforms: std.StringHashMap(u32),
 
     const Self = @This();
 
     pub fn new() Self {
-        return .{ .id = gl.createProgram() };
+        return .{
+            .id = gl.createProgram(),
+            .uniforms = std.StringHashMap(u32).init(std.heap.page_allocator),
+        };
     }
 
     pub fn attach(self: Self, path: []const u8, shader: ShaderType) Self {
@@ -50,5 +55,24 @@ pub const program = struct {
 
     pub fn use(self: Self) void {
         gl.useProgram(self.id);
+    }
+
+    pub fn register_uniform(self: *Self, name: []const u8) *Self {
+        const loc = gl.getUniformLocation(self.id, name.ptr);
+        if (loc < 0) {
+            std.debug.print("uniform {s} is not in shader {d}\n", .{ name, self.id });
+            return self;
+        }
+        self.uniforms.put(name, @bitCast(loc)) catch |err| {
+            std.debug.print("error creating new uniform {s} for shader {d}: {any}\n", .{ name, self.id, err });
+        };
+        return self;
+    }
+
+    pub fn set_uniform_mat4x4(self: *Self, uniform: []const u8, mat4: *const zlm.Mat4) *Self {
+        if (self.uniforms.get(uniform)) |location| {
+            gl.uniformMatrix4fv(@bitCast(location), 1, 0, @ptrCast(&mat4.fields));
+        }
+        return self;
     }
 };
