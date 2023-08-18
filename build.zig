@@ -36,6 +36,10 @@ pub fn build(b: *std.Build) void {
         .source_file = .{ .path = "libs/opengl.zig" },
     }));
 
+    exe.addModule("zlm", b.createModule(.{
+        .source_file = .{ .path = "libs/zlm.zig" },
+    }));
+
     b.installArtifact(exe);
 
     const run_cmd = b.addRunArtifact(exe);
