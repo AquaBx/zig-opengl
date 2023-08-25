@@ -11,7 +11,7 @@ fn compile_shader(path: []const u8, t: gl.GLenum) u32 {
         gl.shaderSource(id, 1, &ptr.ptr, null);
         gl.compileShader(id);
     } else |err| {
-        std.debug.print("error reading shader type {d} {s}: {}", .{ t, path, err });
+        std.debug.print("error reading shader type {d} {s}: {any}", .{ t, path, err });
     }
     return id;
 }
@@ -66,6 +66,34 @@ pub const program = struct {
         self.uniforms.put(name, @bitCast(loc)) catch |err| {
             std.debug.print("error creating new uniform {s} for shader {d}: {any}\n", .{ name, self.id, err });
         };
+        return self;
+    }
+
+    pub fn set_uniform_float(self: *Self, uniform: []const u8, x: f32) *Self {
+        if (self.uniforms.get(uniform)) |location| {
+            gl.uniform1f(@bitCast(location), x);
+        }
+        return self;
+    }
+
+    pub fn set_uniform_float2(self: *Self, uniform: []const u8, x: f32, y: f32) *Self {
+        if (self.uniforms.get(uniform)) |location| {
+            gl.uniform2f(@bitCast(location), x, y);
+        }
+        return self;
+    }
+
+    pub fn set_uniform_float3(self: *Self, uniform: []const u8, x: f32, y: f32, z: f32) *Self {
+        if (self.uniforms.get(uniform)) |location| {
+            gl.uniform3f(@bitCast(location), x, y, z);
+        }
+        return self;
+    }
+
+    pub fn set_uniform_float4(self: *Self, uniform: []const u8, x: f32, y: f32, z: f32, w: f32) *Self {
+        if (self.uniforms.get(uniform)) |location| {
+            gl.uniform4f(@bitCast(location), x, y, z, w);
+        }
         return self;
     }
 
