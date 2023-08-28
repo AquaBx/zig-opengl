@@ -52,17 +52,27 @@ pub fn scroll(window: glfw.Window, _: f64, y_offset: f64) void {
     if (y_offset == 0.0) return;
 
     if (window.getUserPointer(ApplicationContext)) |ctx| {
-        ctx.camera.update_zoom(@floatCast(y_offset));
+        const size = ctx.window.getSize();
+        ctx.camera.update_zoom(@as(f32, @floatCast(y_offset)) * 0.0001, size);
         ctx.bezier.program.use();
         _ = ctx.bezier.program.set_uniform_mat4x4("u_camera", &ctx.camera.matrix());
+        ctx.rectangle.program.use();
+        _ = ctx.rectangle.program.set_uniform_mat4x4("u_camera", &ctx.camera.matrix());
+        ctx.circle.program.use();
+        _ = ctx.circle.program.set_uniform_mat4x4("u_camera", &ctx.camera.matrix());
     }
 }
 
 pub fn resize(window: glfw.Window, width: u32, height: u32) void {
     if (window.getUserPointer(ApplicationContext)) |ctx| {
-        ctx.camera.update_ratio(@as(f32, @floatFromInt(height)) / @as(f32, @floatFromInt(width)));
+        const size = ctx.window.getSize();
+        ctx.camera.update_size(size);
         ctx.bezier.program.use();
         _ = ctx.bezier.program.set_uniform_mat4x4("u_camera", &ctx.camera.matrix());
+        ctx.rectangle.program.use();
+        _ = ctx.rectangle.program.set_uniform_mat4x4("u_camera", &ctx.camera.matrix());
+        ctx.circle.program.use();
+        _ = ctx.circle.program.set_uniform_mat4x4("u_camera", &ctx.camera.matrix());
     }
     gl.viewport(0, 0, @bitCast(width), @bitCast(height));
 }
