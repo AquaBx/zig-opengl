@@ -1,10 +1,11 @@
+const zlm = @import("zlm");
 const gl = @import("gl");
 
-const shader = @import("shader.zig");
+const shader = @import("../shader.zig");
 
 pub const BezierDrawCommand = struct {
     program: shader.program,
-    vertices: []const f32,
+    vertices: []const Vertex,
     vao: u32,
     vbo: u32,
 
@@ -26,9 +27,11 @@ pub const BezierDrawCommand = struct {
 
         gl.genBuffers(1, &self.vbo);
 
-        self.vertices = @as([]const f32, &[_]f32{ -1, -1, -0.5, 0.5, 0.5, 0.5, 1, -1 });
+        self.vertices = @as([]const Vertex, &[_]Vertex{
+            .{ .start = .{ -1, -1 }, .control1 = .{ -0.5, 0.5 }, .control2 = .{ 0.5, 0.5 }, .end = .{ 1, -1 } },
+        });
         gl.bindBuffer(gl.ARRAY_BUFFER, self.vbo);
-        gl.bufferData(gl.ARRAY_BUFFER, @bitCast(self.vertices.len * @sizeOf(f32)), self.vertices.ptr, gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, @bitCast(self.vertices.len * @sizeOf(Vertex)), self.vertices.ptr, gl.STATIC_DRAW);
 
         Vertex.layout();
 
@@ -38,7 +41,7 @@ pub const BezierDrawCommand = struct {
     pub fn draw(self: *Self) void {
         self.program.use();
         gl.bindVertexArray(self.vao);
-        gl.drawArrays(gl.POINTS, 0, Vertex.Count);
+        gl.drawArrays(gl.POINTS, 0, @truncate(@as(i64, @bitCast(self.vertices.len))));
     }
 
     pub fn delete(self: *Self) void {
@@ -54,7 +57,6 @@ pub const BezierDrawCommand = struct {
         end: [2]f32,
 
         const VertexSelf = @This();
-        const Count = 1;
 
         pub fn layout() void {
             gl.enableVertexAttribArray(0);

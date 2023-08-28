@@ -1,7 +1,9 @@
 #version 450 core
 
+#define MAX_VERTICES 150
+
 layout(points) in;
-layout(line_strip, max_vertices = 150) out;
+layout(line_strip, max_vertices = MAX_VERTICES) out;
 
 layout(location = 0) in vec2 geometry_start[];
 layout(location = 1) in vec2 geometry_control1[];
@@ -11,7 +13,7 @@ layout(location = 3) in vec2 geometry_end[];
 uniform mat4 u_camera;
 
 void main() {
-    const int segments = 149;
+    const int segments = MAX_VERTICES - 1;
     const float delta = 1.0 / float(segments);
     float t = 0.0;
 
