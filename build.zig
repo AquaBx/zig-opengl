@@ -1,4 +1,5 @@
 const std = @import("std");
+// const glfw = @import("lib/mach-glfw/build.zig");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
@@ -35,6 +36,17 @@ pub fn build(b: *std.Build) void {
     exe.addModule("gl", b.createModule(.{
         .source_file = .{ .path = "libs/opengl.zig" },
     }));
+
+    exe.addModule("zlm", b.createModule(.{
+        .source_file = .{ .path = "libs/zlm.zig" },
+    }));
+
+    exe.addCSourceFile(.{
+        .file = std.build.LazyPath.relative("libs/stb_image/stb_image_impl.c"),
+        .flags = &[_][]const u8{"-std=c99"},
+    });
+
+    exe.addIncludePath(std.build.LazyPath.relative("libs/stb_image"));
 
     b.installArtifact(exe);
 
